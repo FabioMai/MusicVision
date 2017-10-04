@@ -1,6 +1,6 @@
 ﻿body {
     padding-top: 50px;
-    padding-bottom: 20px;
+    padding-bottom: 10px;
 }
 
 /* Set padding to keep content from hitting the edges */
@@ -16,9 +16,23 @@
     white-space: normal;
 }
 
-/* Set width on the form input elements since they're 100% wide by default */
-input,
-select,
-textarea {
-    max-width: 280px;
+.bg {
+    /* The image used */
+    background-image: url(../Content/images/background.jpg);
+    /* Full height */
+    height: 100%;
+    /* Center and scale the image nicely */
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.homeJumbotron {
+    margin-top: 100px;
+    margin-bottom: 80px;
+}
+
+.loginJumbotron {
+    margin-top: 20px;
+    margin-bottom: 20px;
 }
