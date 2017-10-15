@@ -12,7 +12,11 @@ namespace MusicVision
         public static void RegisterRoutes(RouteCollection routes)
         {
             routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
-
+            routes.MapRoute(
+                "Callback",                                          
+                "callback",                                           
+                new { controller = "Home", action = "MusicLounge" }
+            );
             routes.MapRoute(
                 name: "Default",
                 url: "{controller}/{action}/{id}",

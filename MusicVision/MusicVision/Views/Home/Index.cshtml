@@ -4,5 +4,18 @@
 <div class="col-lg-6 col-lg-offset-3 jumbotron homeJumbotron">
     <h1 class="text-center">MusicVision</h1>
     <p class="lead">MusicVision provides you with matching visuals for your Spotify tracks and playlists.</p>
-    <p><a href="@Url.Action("Login", "Home")" class="btn btn-primary btn-lg col-lg-12">Sign in</a></p>
+    <p><a id="loginRedirect" class="btn btn-primary btn-lg col-sm-12">Sign in</a></p>
 </div>
+
+<script>
+    $('#loginRedirect').on('click', function () { 
+        //Authorization according to https://developer.spotify.com/web-api/authorization-guide/#implicit-grant-flow
+        //TODO: Evaluate different authorization techniques, clean up URL
+        var authLink = 'https://accounts.spotify.com/authorize?client_id='
+            + '8f811d168e154b98ad5d55fffcf392f9' //my ClientID from the application I registered on https://developer.spotify.com/my-applications/#!/applications
+            + '&redirect_uri=http:%2F%2Flocalhost:63927%2Fcallback'
+            + '&scope=user-read-currently-playing%20user-read-playback-state' //Scopes according to https://developer.spotify.com/web-api/using-scopes/
+            + '&response_type=token&state=123';
+        window.location.href = authLink;
+        });
+</script>
