@@ -1,21 +1,25 @@
 ﻿@{
     Layout = "~/Views/Shared/_LayoutLounge.cshtml";
 }
-<div id="app" class="container">    
+<div id="app" class="container">   
     @model List<MusicVision.Models.MusicLoungeModel>
-    <table>
-        <tr>
-            <th>Playlist Name</th>
-        </tr>
-        @foreach (var playlist in Model)
-        {
+    <div class="col-md-3">
+        <table>
             <tr>
-                <td><button type="button" v-on:click="playlistClick('@playlist.TrackList[0].Uri')" class="btn btn-default" aria-label="Previous Track">@playlist.Playlist.Name</button></td>                
-            </tr>            
-        }
-    </table>
-    <div>
-        @foreach (var playlist in Model) {
+                <th>Playlist Name</th>
+            </tr>
+            @foreach (var playlist in Model)
+            {
+                <tr>
+                    <td><button type="button" v-on:click="playlistClick(JSON.parse('@Json.Encode(@playlist.TrackList[0])'),'@playlist.Playlist.Name')" class="btn btn-default" aria-label="Previous Track">@playlist.Playlist.Name</button></td>
+                </tr>
+            }
+        </table>
+    </div>
+    
+    @foreach (var playlist in Model)
+    {
+        <div class="col-md-3" v-if="activePlaylist=='@playlist.Playlist.Name'">
             <table>
                 <tr>
                     <th>Playlist Songs</th>
@@ -23,13 +27,13 @@
                 @foreach (var track in playlist.TrackList)
                 {
                     <tr>
-                        <td><button type="button" v-on:click="songClick('@track.Uri')" class="btn btn-default" aria-label="Previous Track">@track.Name</button></td>
+                        <td><button type="button" v-on:click="songClick(JSON.parse('@Json.Encode(@track)'))" class="btn btn-default" aria-label="Previous Track">@track.Name</button></td>
                     </tr>
                 }
             </table>
-        }
-    </div>
-
+        </div>
+    }
+    
     <footer class="container-fluid">
         <div class="col-md-3" v-if="songPlaying">
             <img :src="currentSongImage" height="64" width="64" />
@@ -46,31 +50,15 @@
 @*Vue.js - flexible client-side JS Framework https://vuejs.org/*@
 <script src="https://unpkg.com/vue"></script>
 
-<script>
-    @*var playlistJSON = [{}];
-    $(document).ready(function () {
-        @foreach (var playlist in Model)
-        {
-            <text>
-            playlistJSON['@playlist.Playlist.Name'] = [];
-
-            @foreach (var track in playlist.TrackList)
-            {
-                <text>
-            playlistJSON['@playlist.Playlist.Name'].push('@track.Uri.ToString()');
-                </text>
-            }
-            </text>
-        }
-    });*@
-
+<script>  
     var app = new Vue({
         el: '#app',
         data: {
-            songPlaying: true,
+            songPlaying: false,
             currentSongImage: '',
             currentSongTitle: '',
-            currentSongArtist: ''
+            currentSongArtist: '',
+            activePlaylist: ''
         },
         methods: {
             playerClick: function (commandName) {
@@ -81,49 +69,62 @@
                     contentType: "application/json; charset=utf-8",
                     dataType: "json",
                     success: function (response) {
-                        console.log(response);
+                        console.log('/Home/PlayerClick call succeeded.');
                     },
                     failure: function (response) {
-                        console.log(response);
+                        console.log('/Home/PlayerClick call failed.');
                     },
                     error: function (response) {
-                        console.log(response);
+                        console.log('/Home/PlayerClick call errored.');
                     }
                 });
             },
-            playlistClick: function (songURI) {                
+            playlistClick: function (songData, playlistName) {
+                var self = this;
+                self.songPlaying = true;
+                self.currentSongImage = songData["Album"]["Images"][2]["Url"];
+                self.currentSongTitle = songData["Name"];
+                self.currentSongArtist = songData["Artists"][0]["Name"];
+                self.activePlaylist = playlistName;
+
                 $.ajax({
                     type: "POST",
                     url: "/Home/InitializePlayer",
-                    data: '{trackURI:"' + songURI + '"}',
+                    data: '{trackURI:"' + songData["Uri"] + '"}',
                     contentType: "application/json; charset=utf-8",
                     dataType: "json",
                     success: function (response) {
-                        console.log(response);
+                        console.log('/Home/InitializePlayer call succeeded.');
                     },
                     failure: function (response) {
-                        console.log(response);
+                        console.log('/Home/InitializePlayer call failed.');
                     },
                     error: function (response) {
-                        console.log(response);
+                        console.log('/Home/InitializePlayer call errored.');
                     }
                 });
             },
-            songClick: function (songURI) {
+            songClick: function (songData) {                
+                var self = this;
+                self.songPlaying = true;
+                self.currentSongImage = songData["Album"]["Images"][2]["Url"];
+                self.currentSongTitle = songData["Name"];
+                self.currentSongArtist = songData["Artists"][0]["Name"];
+
                 $.ajax({
                     type: "POST",
                     url: "/Home/InitializePlayer",
-                    data: '{trackURI:"' + songURI + '"}',
+                    data: '{trackURI:"' + songData["Uri"] + '"}',
                     contentType: "application/json; charset=utf-8",
                     dataType: "json",
                     success: function (response) {
-                        console.log(response);
+                        console.log('/Home/InitializePlayer call succeeded.');
                     },
                     failure: function (response) {
-                        console.log(response);
+                        console.log('/Home/InitializePlayer call failed.');
                     },
                     error: function (response) {
-                        console.log(response);
+                        console.log('/Home/InitializePlayer call errored.');
                     }
                 });
             },
@@ -143,13 +144,8 @@
                 playerClick('pause');
             }
         },
-        mounted() {
-            var self = this;
-
-            //            self.currentSongImage = data.item.album.images[2].url,
-            //            self.currentSongTitle = data.item.name,
-            //            self.currentSongArtist = data.item.artists[0].name,
-            //            self.songPlaying = true
+        mounted() {            
+            
         }
     })
 

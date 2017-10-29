@@ -66,6 +66,7 @@ namespace MusicVision.Controllers
                     message = "Next command.";
                     break;
                 case "previous":
+                    spotifyLocal._spotify.Previous();
                     message = "Previous command.";
                     break;
                 default:
