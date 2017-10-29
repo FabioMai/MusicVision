@@ -36,29 +36,50 @@ namespace MusicVision.Controllers
         }
 
         [HttpPost]
-        public async Task<JsonResult> InitializePlayer(string name)
+        public async Task<JsonResult> InitializePlayer(string trackURI)
         {
-            string test = "tester12";
+            string message = "tester12";
             SpotifyLocal spotifyLocal = new SpotifyLocal();
             spotifyLocal.Connect();
-            await spotifyLocal._spotify.Play();
-            return Json(test);
+            await spotifyLocal._spotify.PlayURL(trackURI);
+            return Json(message);
         }
 
         [HttpPost]
         public async Task<JsonResult> PlayerClick(string commandName)
         {
-            string test = "tester12";
+            string message = "No message.";
             SpotifyLocal spotifyLocal = new SpotifyLocal();
-            spotifyLocal.Connect();
-            await spotifyLocal._spotify.Play();
-            return Json(test);
+            spotifyLocal.Connect();            
+            switch (commandName)
+            {
+                case "play":                    
+                    //spotifyLocal.UpdateTrack();
+                    await spotifyLocal._spotify.Play();                    
+                    message = "Play command.";
+                    break;
+                case "pause":
+                    await spotifyLocal._spotify.Pause();
+                    message = "Pause command.";
+                    break;
+                case "next":                    
+                    message = "Next command.";
+                    break;
+                case "previous":
+                    message = "Previous command.";
+                    break;
+                default:
+                    message = "Improper command.";
+                    break;
+            }
+                        
+            return Json(message);
         }
     }
 
     public class SpotifyWeb
     {
-        public SpotifyWebAPI _spotify;
+        private SpotifyWebAPI _spotify;
 
         private PrivateProfile _profile;        
         private List<SimplePlaylist> _simplePlaylists;
@@ -71,7 +92,7 @@ namespace MusicVision.Controllers
 
         public SpotifyWeb()
         {                         
-
+            
         }
 
         public void InitialSetup()
@@ -79,7 +100,14 @@ namespace MusicVision.Controllers
             _profile = _spotify.GetPrivateProfile();
             _simplePlaylists = GetPlaylists(_profile.Id);
             _fullPlaylists = GetFullPlaylists(_simplePlaylists);
-            _musicLoungeModel = CreateMusicLoungeModel(_fullPlaylists);
+            _musicLoungeModel = CreateMusicLoungeModel(_fullPlaylists);                      
+        }
+
+        public string GetTrackURI()
+        {
+            Paging<PlaylistTrack> playlistTracks = _spotify.GetPlaylistTracks(_fullPlaylists[0].Owner.Id, _fullPlaylists[0].Id);
+            List<FullTrack> list = playlistTracks.Items.Select(track => track.Track).ToList();
+            return list[0].Uri;
         }
 
         private List<MusicLoungeModel> CreateMusicLoungeModel(List<FullPlaylist> fullPlaylists)
@@ -163,20 +191,18 @@ namespace MusicVision.Controllers
 
     public partial class SpotifyLocal
     {
-        public readonly SpotifyLocalAPI _spotify;
+        public readonly SpotifyLocalAPI _spotify;        
         private Track _currentTrack;
 
         public SpotifyLocal()
-        {
-            //InitializeComponent();
-
+        {            
             _spotify = new SpotifyLocalAPI();
             _spotify.OnPlayStateChange += _spotify_OnPlayStateChange;
             _spotify.OnTrackChange += _spotify_OnTrackChange;
             _spotify.OnTrackTimeChange += _spotify_OnTrackTimeChange;
             _spotify.OnVolumeChange += _spotify_OnVolumeChange;
             //_spotify.SynchronizingObject = this;
-
+            
             //artistLinkLabel.Click += (sender, args) => Process.Start(artistLinkLabel.Tag.ToString());
             //albumLinkLabel.Click += (sender, args) => Process.Start(albumLinkLabel.Tag.ToString());
             //titleLinkLabel.Click += (sender, args) => Process.Start(titleLinkLabel.Tag.ToString());
@@ -306,7 +332,7 @@ namespace MusicVision.Controllers
 
         private async void playUrlBtn_Click(object sender, EventArgs e)
         {
-           // await _spotify.PlayURL(playTextBox.Text, contextTextBox.Text);
+            // await _spotify.PlayURL(playTextBox.Text, contextTextBox.Text);           
         }
 
         private async void playBtn_Click(object sender, EventArgs e)

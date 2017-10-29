@@ -10,7 +10,7 @@
         @foreach (var playlist in Model)
         {
             <tr>
-                <td><button type="button" v-on:click="playlistClick()" class="btn btn-default" aria-label="Previous Track">@playlist.Playlist.Name</button></td>                
+                <td><button type="button" v-on:click="playlistClick('@playlist.TrackList[0].Uri')" class="btn btn-default" aria-label="Previous Track">@playlist.Playlist.Name</button></td>                
             </tr>            
         }
     </table>
@@ -23,23 +23,21 @@
                 @foreach (var track in playlist.TrackList)
                 {
                     <tr>
-                        <td><button type="button" v-on:click="songClick()" class="btn btn-default" aria-label="Previous Track">@track.Name</button></td>
+                        <td><button type="button" v-on:click="songClick('@track.Uri')" class="btn btn-default" aria-label="Previous Track">@track.Name</button></td>
                     </tr>
                 }
             </table>
         }
     </div>
 
-    @*<iframe src="https://open.spotify.com/embed?uri=spotify:track:5JunxkcjfCYcY7xJ29tLai"
-            width="300" heaight="380" frameborder="0" allowtransparency="true"></iframe>*@
     <footer class="container-fluid">
         <div class="col-md-3" v-if="songPlaying">
             <img :src="currentSongImage" height="64" width="64" />
             <div class="btn-group">
-                <button type="button" v-on:click="previousTrack()" class="btn btn-default" aria-label="Previous Track"><span class="glyphicon glyphicon-step-backward" aria-hidden="true"></span></button>
+                <button type="button" v-on:click="playerClick('previous')" class="btn btn-default" aria-label="Previous Track"><span class="glyphicon glyphicon-step-backward" aria-hidden="true"></span></button>
                 <button type="button" v-on:click="playerClick('play')" class="btn btn-default" aria-label="Play"><span class="glyphicon glyphicon-play" aria-hidden="true"></span></button>
-                <button type="button" v-on:click="pause()" class="btn btn-default" aria-label="Pause"><span class="glyphicon glyphicon-pause" aria-hidden="true"></span></button>                
-                <button type="button" v-on:click="nextTrack()" class="btn btn-default" aria-label="Next Track"><span class="glyphicon glyphicon-step-forward" aria-hidden="true"></span></button>
+                <button type="button" v-on:click="playerClick('pause')" class="btn btn-default" aria-label="Pause"><span class="glyphicon glyphicon-pause" aria-hidden="true"></span></button>
+                <button type="button" v-on:click="playerClick('next')" class="btn btn-default" aria-label="Next Track"><span class="glyphicon glyphicon-step-forward" aria-hidden="true"></span></button>
             </div>
             <p>{{currentSongTitle}} by {{currentSongArtist}}</p></div>
     </footer>
@@ -49,20 +47,33 @@
 <script src="https://unpkg.com/vue"></script>
 
 <script>
-    var tokenType;
-    var accessToken;
+    @*var playlistJSON = [{}];
+    $(document).ready(function () {
+        @foreach (var playlist in Model)
+        {
+            <text>
+            playlistJSON['@playlist.Playlist.Name'] = [];
+
+            @foreach (var track in playlist.TrackList)
+            {
+                <text>
+            playlistJSON['@playlist.Playlist.Name'].push('@track.Uri.ToString()');
+                </text>
+            }
+            </text>
+        }
+    });*@
+
     var app = new Vue({
         el: '#app',
         data: {
             songPlaying: true,
             currentSongImage: '',
             currentSongTitle: '',
-            currentSongArtist: '',
-            accessToken: '',
-            tokenType: ''
+            currentSongArtist: ''
         },
-        methods: {            
-            playerClick: function (commandName) {                
+        methods: {
+            playerClick: function (commandName) {
                 $.ajax({
                     type: "POST",
                     url: "/Home/PlayerClick",
@@ -78,13 +89,13 @@
                     error: function (response) {
                         console.log(response);
                     }
-                });                
+                });
             },
-            playlistClick: function () {
+            playlistClick: function (songURI) {                
                 $.ajax({
                     type: "POST",
                     url: "/Home/InitializePlayer",
-                    data: '{name:"value"}',
+                    data: '{trackURI:"' + songURI + '"}',
                     contentType: "application/json; charset=utf-8",
                     dataType: "json",
                     success: function (response) {
@@ -98,58 +109,47 @@
                     }
                 });
             },
-            songClick: function () {
-                console.log("test");
+            songClick: function (songURI) {
+                $.ajax({
+                    type: "POST",
+                    url: "/Home/InitializePlayer",
+                    data: '{trackURI:"' + songURI + '"}',
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (response) {
+                        console.log(response);
+                    },
+                    failure: function (response) {
+                        console.log(response);
+                    },
+                    error: function (response) {
+                        console.log(response);
+                    }
+                });
             },
-            //Player calls are still buggy - couldn't figure them out yet
-            //TODO: Evaluate JS SpotifyWebAPI, decide which API Wrapper to use
             getCurrentTrack: function () {
 
             },
             previousTrack: function () {
-                //$.ajax({
-                //    url: 'https://api.spotify.com/v1/me/player/previous',
-                //    type: 'POST',
-                //    headers: {
-                //        "Content-Type": "application/json",
-                //        "Authorization": tokenType + " " + accessToken
-                //    },
-                //    datatype: 'jsonp'
-                //});
+                playerClick('previous');
             },
             nextTrack: function () {
-                //$.ajax({
-                //    url: 'https://api.spotify.com/v1/me/player/next',
-                //    type: 'POST',
-                //    headers: {
-                //        "Content-Type": "application/json",
-                //        "Authorization": tokenType + " " + accessToken
-                //    },
-                //    datatype: 'jsonp'
-                //});
+                playerClick('next');
             },
             play: function () {
                 playerClick('play');
             },
             pause: function () {
-                //$.ajax({
-                //    url: 'https://api.spotify.com/v1/me/player/pause',
-                //    type: 'PUT',
-                //    headers: {
-                //        "Content-Type": "application/json",
-                //        "Authorization": tokenType + " " + accessToken
-                //    },
-                //    datatype: 'jsonp'
-                //});
+                playerClick('pause');
             }
         },
         mounted() {
             var self = this;
-                      
+
             //            self.currentSongImage = data.item.album.images[2].url,
             //            self.currentSongTitle = data.item.name,
             //            self.currentSongArtist = data.item.artists[0].name,
-            //            self.songPlaying = true           
+            //            self.songPlaying = true
         }
     })
 
