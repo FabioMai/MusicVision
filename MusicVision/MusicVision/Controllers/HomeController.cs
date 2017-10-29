@@ -1,4 +1,6 @@
 ﻿using SpotifyAPI.Local;
+using SpotifyAPI.Local.Models;
+using SpotifyAPI.Local.Enums;
 using SpotifyAPI.Web;
 using SpotifyAPI.Web.Auth;
 using SpotifyAPI.Web.Enums;
@@ -11,8 +13,6 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
-using SpotifyAPI.Local.Enums;
-using SpotifyAPI.Local.Models;
 using System.Diagnostics;
 using System.Globalization;
 using MusicVision.Models;
@@ -36,12 +36,22 @@ namespace MusicVision.Controllers
         }
 
         [HttpPost]
-        public async Task<JsonResult> AjaxMethod(string name)
+        public async Task<JsonResult> InitializePlayer(string name)
         {
             string test = "tester12";
-            SpotifyLocal test2 = new SpotifyLocal();
-            test2.Connect();
-            await test2._spotify.Play();
+            SpotifyLocal spotifyLocal = new SpotifyLocal();
+            spotifyLocal.Connect();
+            await spotifyLocal._spotify.Play();
+            return Json(test);
+        }
+
+        [HttpPost]
+        public async Task<JsonResult> PlayerClick(string commandName)
+        {
+            string test = "tester12";
+            SpotifyLocal spotifyLocal = new SpotifyLocal();
+            spotifyLocal.Connect();
+            await spotifyLocal._spotify.Play();
             return Json(test);
         }
     }
