@@ -44,3 +44,21 @@ footer {
     margin-top: 20px;
     margin-bottom: 20px;
 }
+
+.marginBottom {
+    margin-bottom: 15px;
+}
+
+.marginTop {
+    margin-top: 15px;
+}
+
+.tracksScrollable {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.playlistsScrollable {
+    max-height: 300px;
+    overflow-y: auto;
+}

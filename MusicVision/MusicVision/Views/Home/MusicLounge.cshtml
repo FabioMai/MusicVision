@@ -1,39 +1,47 @@
 ﻿@{
     Layout = "~/Views/Shared/_LayoutLounge.cshtml";
 }
-<div id="app" class="container">   
+<div id="app" class="container">
     @model List<MusicVision.Models.MusicLoungeModel>
-    <div class="col-md-3">
-        <table>
-            <tr>
-                <th>Playlist Name</th>
-            </tr>
-            @foreach (var playlist in Model)
-            {
-                <tr>
-                    <td><button type="button" v-on:click="playlistClick(JSON.parse('@Json.Encode(@playlist.TrackList[0])'),'@playlist.Playlist.Name')" class="btn btn-default" aria-label="Previous Track">@playlist.Playlist.Name</button></td>
-                </tr>
-            }
-        </table>
+    <div class="text-center marginTop">
+        <button class="btn btn-primary" v-on:click="toggleSelection()">Browse</button>
     </div>
-    
-    @foreach (var playlist in Model)
-    {
-        <div class="col-md-3" v-if="activePlaylist=='@playlist.Playlist.Name'">
-            <table>
-                <tr>
-                    <th>Playlist Songs</th>
-                </tr>
-                @foreach (var track in playlist.TrackList)
+    <div id="toggleArea" class="marginTop">
+        <div class="col-md-8 col-md-offset-2 marginBottom"><input class="form-control" placeholder="Search for songs, artists, etc." /></div>
+        <div class=" playlistsScrollable col-md-3 col-md-offset-1">
+            <div class="list-group">
+                <a href="#" class="list-group-item active">
+                    Playlists
+                </a>
+                @foreach (var playlist in Model)
                 {
-                    <tr>
-                        <td><button type="button" v-on:click="songClick(JSON.parse('@Json.Encode(@track)'))" class="btn btn-default" aria-label="Previous Track">@track.Name</button></td>
-                    </tr>
+                    <a href="#" class="list-group-item" v-on:click="playlistClick(JSON.parse('@Json.Encode(@playlist.TrackList[0])'),'@playlist.Playlist.Name')">@playlist.Playlist.Name</a>
                 }
-            </table>
+            </div>
         </div>
-    }
-    
+
+        @foreach (var playlist in Model)
+        {
+            <div class="tracksScrollable col-md-7" v-if="activePlaylist=='@playlist.Playlist.Name'">
+                <div class="list-group">
+                    <a href="#" class="list-group-item active">
+                        @playlist.Playlist.Name
+                    </a>
+                    @foreach (var track in playlist.TrackList)
+                    {
+                        var artists = "";
+                        foreach (var artist in track.Artists)
+                        {
+                            artists = artists + artist + ", ";
+                        }
+                        artists = artists.Substring(artists.Length - 2);
+                        <a href="#" class="list-group-item" v-on:click="songClick(JSON.parse('@Json.Encode(@track)'))">@track.Name</a>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
     <footer class="container-fluid">
         <div class="col-md-3" v-if="songPlaying">
             <img :src="currentSongImage" height="64" width="64" />
@@ -43,14 +51,15 @@
                 <button type="button" v-on:click="playerClick('pause')" class="btn btn-default" aria-label="Pause"><span class="glyphicon glyphicon-pause" aria-hidden="true"></span></button>
                 <button type="button" v-on:click="playerClick('next')" class="btn btn-default" aria-label="Next Track"><span class="glyphicon glyphicon-step-forward" aria-hidden="true"></span></button>
             </div>
-            <p>{{currentSongTitle}} by {{currentSongArtist}}</p></div>
+            <p>{{currentSongTitle}} by {{currentSongArtist}}</p>
+        </div>
     </footer>
 </div>
 
 @*Vue.js - flexible client-side JS Framework https://vuejs.org/*@
 <script src="https://unpkg.com/vue"></script>
 
-<script>  
+<script>
     var app = new Vue({
         el: '#app',
         data: {
@@ -61,6 +70,9 @@
             activePlaylist: ''
         },
         methods: {
+            toggleSelection: function () {
+                $("#toggleArea").slideToggle("slow");
+            },
             playerClick: function (commandName) {
                 $.ajax({
                     type: "POST",
@@ -104,7 +116,7 @@
                     }
                 });
             },
-            songClick: function (songData) {                
+            songClick: function (songData) {
                 var self = this;
                 self.songPlaying = true;
                 self.currentSongImage = songData["Album"]["Images"][2]["Url"];
@@ -144,8 +156,8 @@
                 playerClick('pause');
             }
         },
-        mounted() {            
-            
+        mounted() {
+
         }
     })
 
