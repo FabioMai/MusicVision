@@ -2,7 +2,37 @@
     Layout = "~/Views/Shared/_LayoutLounge.cshtml";
 }
 <div id="app" class="container">
+    The current date and time is:
+    @model List<MusicVision.Models.MusicLoungeModel>
+    <table>
+        <tr>
+            <th>Playlist Name</th>
+        </tr>
+        @foreach (var playlist in Model)
+        {
+            <tr onclick="clickTest();">
+                <td>@playlist.Playlist.Name</td>                
+            </tr>            
+        }
+    </table>
+    <div>
+        @foreach (var playlist in Model) {
+            <table>
+                <tr>
+                    <th>Playlist Songs</th>
+                </tr>
+                @foreach (var track in playlist.TrackList)
+                {
+                    <tr onclick="clickTest2();">
+                        <td>@track.Name</td>
+                </tr>
+                }
+            </table>
+        }
+    </div>
 
+    @*<iframe src="https://open.spotify.com/embed?uri=spotify:track:5JunxkcjfCYcY7xJ29tLai"
+            width="300" heaight="380" frameborder="0" allowtransparency="true"></iframe>*@
     <footer class="container-fluid">
         <div class="col-md-3" v-if="songPlaying">
             <img :src="currentSongImage" height="64" width="64" />
@@ -23,103 +53,127 @@ https://github.com/JMPerez/spotify-web-api-js*@
 <script src="~/scripts/spotify-web-api.js"></script>
 
 <script>
-    var tokenType;
-    var accessToken;
-    var app = new Vue({
-        el: '#app',
-        data: {
-            songPlaying: false,
-            currentSongImage: '',
-            currentSongTitle: '',
-            currentSongArtist: '',
-            accessToken: '',
-            tokenType: ''
-        },
-        methods: {
-            //Player calls are still buggy - couldn't figure them out yet
-            //TODO: Evaluate JS SpotifyWebAPI, decide which API Wrapper to use
-            getCurrentTrack: function () {
-                
-            },
-            previousTrack: function () {
-                //$.ajax({
-                //    url: 'https://api.spotify.com/v1/me/player/previous',
-                //    type: 'POST',
-                //    headers: {
-                //        "Content-Type": "application/json",
-                //        "Authorization": tokenType + " " + accessToken
-                //    },
-                //    datatype: 'jsonp'
-                //});
-            },
-            nextTrack: function () {
-                //$.ajax({
-                //    url: 'https://api.spotify.com/v1/me/player/next',
-                //    type: 'POST',
-                //    headers: {
-                //        "Content-Type": "application/json",
-                //        "Authorization": tokenType + " " + accessToken
-                //    },
-                //    datatype: 'jsonp'
-                //});
-            },
-            play: function () {
-                //$.ajax({
-                //    url: '	https://api.spotify.com/v1/me/player/play',
-                //    type: 'PUT',
-                //    headers: {
-                //        "Content-Type": "application/json",
-                //        "Authorization": tokenType + " " + accessToken
-                //    },
-                //    datatype: 'jsonp'
-                //});
-            },
-            pause: function () {
-                //$.ajax({
-                //    url: 'https://api.spotify.com/v1/me/player/pause',
-                //    type: 'PUT',
-                //    headers: {
-                //        "Content-Type": "application/json",
-                //        "Authorization": tokenType + " " + accessToken
-                //    },
-                //    datatype: 'jsonp'
-                //});
-            }
-        },
-        mounted() {
-            var self = this;
-            accessToken = getHashValue('access_token');
-            tokenType = getHashValue('token_type');
-            $.ajax({
-                url: 'https://api.spotify.com/v1/me/player/currently-playing',
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": tokenType + " " + accessToken
-                },
-                datatype: 'jsonp',
-                success: function (data) {
-                    try {
-                        self.currentSongImage = data.item.album.images[2].url,
-                        self.currentSongTitle = data.item.name,
-                        self.currentSongArtist = data.item.artists[0].name,
-                        self.songPlaying = true
-                    }
-                    catch (Exception) {
-                        self.songPlaying = false;
-                    }
-                }
-            });
-        }
-    })
-
-    //Spotify Wrapper library, not in use yet
-    $(document).ready(function () {
-        var spotifyApi = new SpotifyWebApi();
-    });
-
-    //Extract Hash values out of URL
-    function getHashValue(key) {
-        var matches = location.hash.match(new RegExp(key + '=([^&]*)'));
-        return matches ? matches[1] : null;
+    function clickTest2() {
+    
     }
+
+    function clickTest() {
+        console.log('you clicked me mofo2');
+        $.ajax({
+            type: "POST",
+            url: "/Home/AjaxMethod",
+            data: '{name:"value"}',
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            success: function (response) {
+                console.log("you win!");
+            },
+            failure: function (response) {
+                console.log("you lose");
+            },
+            error: function (response) {
+                console.log(response);
+                console.log("you fail");
+            }
+        });
+    }
+    //var tokenType;
+    //var accessToken;
+    //var app = new Vue({
+    //    el: '#app',
+    //    data: {
+    //        songPlaying: false,
+    //        currentSongImage: '',
+    //        currentSongTitle: '',
+    //        currentSongArtist: '',
+    //        accessToken: '',
+    //        tokenType: ''
+    //    },
+    //    methods: {
+    //        //Player calls are still buggy - couldn't figure them out yet
+    //        //TODO: Evaluate JS SpotifyWebAPI, decide which API Wrapper to use
+    //        getCurrentTrack: function () {
+
+    //        },
+    //        previousTrack: function () {
+    //            //$.ajax({
+    //            //    url: 'https://api.spotify.com/v1/me/player/previous',
+    //            //    type: 'POST',
+    //            //    headers: {
+    //            //        "Content-Type": "application/json",
+    //            //        "Authorization": tokenType + " " + accessToken
+    //            //    },
+    //            //    datatype: 'jsonp'
+    //            //});
+    //        },
+    //        nextTrack: function () {
+    //            //$.ajax({
+    //            //    url: 'https://api.spotify.com/v1/me/player/next',
+    //            //    type: 'POST',
+    //            //    headers: {
+    //            //        "Content-Type": "application/json",
+    //            //        "Authorization": tokenType + " " + accessToken
+    //            //    },
+    //            //    datatype: 'jsonp'
+    //            //});
+    //        },
+    //        play: function () {
+    //            //$.ajax({
+    //            //    url: '	https://api.spotify.com/v1/me/player/play',
+    //            //    type: 'PUT',
+    //            //    headers: {
+    //            //        "Content-Type": "application/json",
+    //            //        "Authorization": tokenType + " " + accessToken
+    //            //    },
+    //            //    datatype: 'jsonp'
+    //            //});
+    //        },
+    //        pause: function () {
+    //            //$.ajax({
+    //            //    url: 'https://api.spotify.com/v1/me/player/pause',
+    //            //    type: 'PUT',
+    //            //    headers: {
+    //            //        "Content-Type": "application/json",
+    //            //        "Authorization": tokenType + " " + accessToken
+    //            //    },
+    //            //    datatype: 'jsonp'
+    //            //});
+    //        }
+    //    },
+    //    mounted() {
+    //        var self = this;
+    //        accessToken = getHashValue('access_token');
+    //        tokenType = getHashValue('token_type');
+    //        $.ajax({
+    //            url: 'https://api.spotify.com/v1/me/player/currently-playing',
+    //            headers: {
+    //                "Content-Type": "application/json",
+    //                "Authorization": tokenType + " " + accessToken
+    //            },
+    //            datatype: 'jsonp',
+    //            success: function (data) {
+    //                try {
+    //                    self.currentSongImage = data.item.album.images[2].url,
+    //                    self.currentSongTitle = data.item.name,
+    //                    self.currentSongArtist = data.item.artists[0].name,
+    //                    self.songPlaying = true
+    //                }
+    //                catch (Exception) {
+    //                    self.songPlaying = false;
+    //                }
+    //            }
+    //        });
+    //    }
+    //})
+
+    ////Spotify Wrapper library, not in use yet
+    //$(document).ready(function () {
+    //    var spotifyApi = new SpotifyWebApi();
+    //});
+
+    ////Extract Hash values out of URL
+    //function getHashValue(key) {
+    //    var matches = location.hash.match(new RegExp(key + '=([^&]*)'));
+    //    return matches ? matches[1] : null;
+    //}
 </script>
