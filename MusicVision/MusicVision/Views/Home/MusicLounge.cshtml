@@ -57,8 +57,7 @@ https://github.com/JMPerez/spotify-web-api-js*@
     
     }
 
-    function clickTest() {
-        console.log('you clicked me mofo2');
+    function clickTest() {        
         $.ajax({
             type: "POST",
             url: "/Home/AjaxMethod",
@@ -66,14 +65,13 @@ https://github.com/JMPerez/spotify-web-api-js*@
             contentType: "application/json; charset=utf-8",
             dataType: "json",
             success: function (response) {
-                console.log("you win!");
+                console.log(response);
             },
             failure: function (response) {
-                console.log("you lose");
+                console.log(response);
             },
             error: function (response) {
-                console.log(response);
-                console.log("you fail");
+                console.log(response);                
             }
         });
     }

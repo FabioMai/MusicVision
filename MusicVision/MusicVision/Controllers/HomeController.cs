@@ -11,7 +11,6 @@ using System.Net;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
-
 using SpotifyAPI.Local.Enums;
 using SpotifyAPI.Local.Models;
 using System.Diagnostics;
@@ -29,30 +28,10 @@ namespace MusicVision.Controllers
 
         public async Task<ActionResult> MusicLounge()
         {
-            APITest tester = new APITest();
-            await Task.Run(() => tester.RunAuthentication());
-            PrivateProfile profile = await tester._spotify.GetPrivateProfileAsync();
-            List<SimplePlaylist> simplePlaylist = tester.GetPlaylists(profile.Id);            
-            List<FullPlaylist> fullPlaylist = tester.GetFullPlaylists(profile.Id,simplePlaylist);
-            List<MusicLoungeModel> model = new List<MusicLoungeModel>();
-
-            foreach(var playlist in fullPlaylist)
-            {
-                MusicLoungeModel el = new MusicLoungeModel();
-                el.Playlist=playlist;
-                
-                Paging<PlaylistTrack> playlistTracks = tester._spotify.GetPlaylistTracks(playlist.Owner.Id,playlist.Id);
-                List<FullTrack> list = playlistTracks.Items.Select(track => track.Track).ToList();
-                
-                while (playlistTracks.Next != null)
-                {
-                    playlistTracks = tester._spotify.GetPlaylistTracks(playlist.Owner.Id, playlist.Id,"",100, playlistTracks.Offset + playlistTracks.Limit);
-                    list.AddRange(playlistTracks.Items.Select(track => track.Track));
-                }
-                el.TrackList = list;
-
-                model.Add(el);
-            }
+            SpotifyWeb spotifyWeb = new SpotifyWeb();
+            await Task.Run(() => spotifyWeb.RunAuthentication());                        
+            List<MusicLoungeModel> model = spotifyWeb.MusicLoungeModel;
+            
             return View(model);
         }
 
@@ -60,69 +39,66 @@ namespace MusicVision.Controllers
         public async Task<JsonResult> AjaxMethod(string name)
         {
             string test = "tester12";
-            LocalControl test2 = new LocalControl();
+            SpotifyLocal test2 = new SpotifyLocal();
             test2.Connect();
             await test2._spotify.Play();
             return Json(test);
         }
     }
 
-    public class APITest
+    public class SpotifyWeb
     {
         public SpotifyWebAPI _spotify;
 
-        private PrivateProfile _profile;
-        private List<FullTrack> _savedTracks;
-        private List<SimplePlaylist> _playlists;
+        private PrivateProfile _profile;        
+        private List<SimplePlaylist> _simplePlaylists;
+        private List<FullPlaylist> _fullPlaylists;       
+        private List<MusicLoungeModel> _musicLoungeModel;
+        public List<MusicLoungeModel> MusicLoungeModel
+        {
+            get { return _musicLoungeModel; }
+        }
 
-        public APITest()
-        {             
-            _savedTracks = new List<FullTrack>();
+        public SpotifyWeb()
+        {                         
 
         }
 
-        public async void InitialSetup()
-        {
-                        
-            _profile = await _spotify.GetPrivateProfileAsync();
-            
-            _savedTracks = GetSavedTracks();
-            
-            //_savedTracks.ForEach(track => savedTracksListView.Items.Add(new ListViewItem()
-            //{
-            //    Text = track.Name,
-            //    SubItems = { string.Join(",", track.Artists.Select(source => source.Name)), track.Album.Name }
-            //}));
-
-            //_playlists = GetPlaylists();            
-            //_playlists.ForEach(playlist => playlistsListBox.Items.Add(playlist.Name));           
-
-            //if (_profile.Images != null && _profile.Images.Count > 0)
-            //{
-            //    using (WebClient wc = new WebClient())
-            //    {
-            //        byte[] imageBytes = await wc.DownloadDataTaskAsync(new Uri(_profile.Images[0].Url));
-            //        using (MemoryStream stream = new MemoryStream(imageBytes)) { }
-            //            //avatarPictureBox.Image = Image.FromStream(stream);
-            //    }
-            //}
+        public void InitialSetup()
+        {                            
+            _profile = _spotify.GetPrivateProfile();
+            _simplePlaylists = GetPlaylists(_profile.Id);
+            _fullPlaylists = GetFullPlaylists(_simplePlaylists);
+            _musicLoungeModel = CreateMusicLoungeModel(_fullPlaylists);
         }
 
-        public List<FullTrack> GetSavedTracks()
-        {
-            Paging<SavedTrack> savedTracks = _spotify.GetSavedTracks();
-            List<FullTrack> list = savedTracks.Items.Select(track => track.Track).ToList();
+        private List<MusicLoungeModel> CreateMusicLoungeModel(List<FullPlaylist> fullPlaylists)
+        {            
+            List<MusicLoungeModel> musicLoungeModelList = new List<MusicLoungeModel>();
 
-            while (savedTracks.Next != null)
+            foreach (var fullPlaylist in fullPlaylists)
             {
-                savedTracks = _spotify.GetSavedTracks(20, savedTracks.Offset + savedTracks.Limit);
-                list.AddRange(savedTracks.Items.Select(track => track.Track));
+                MusicLoungeModel musicLoungeModel = new MusicLoungeModel();
+                musicLoungeModel.Playlist = fullPlaylist;
+
+                Paging<PlaylistTrack> playlistTracks = _spotify.GetPlaylistTracks(fullPlaylist.Owner.Id, fullPlaylist.Id);
+                List<FullTrack> list = playlistTracks.Items.Select(track => track.Track).ToList();
+
+                while (playlistTracks.Next != null)
+                {
+                    playlistTracks = _spotify.GetPlaylistTracks(fullPlaylist.Owner.Id, fullPlaylist.Id, "", 100, playlistTracks.Offset + playlistTracks.Limit);
+                    list.AddRange(playlistTracks.Items.Select(track => track.Track));
+                }
+                musicLoungeModel.TrackList = list;
+
+                musicLoungeModelList.Add(musicLoungeModel);
             }
 
-            return list;
+            return musicLoungeModelList;
         }
 
-        public List<SimplePlaylist> GetPlaylists(string profileID)
+
+        private List<SimplePlaylist> GetPlaylists(string profileID)
         {
             Paging<SimplePlaylist> playlists = _spotify.GetUserPlaylists(profileID);
             List<SimplePlaylist> list = playlists.Items.ToList();
@@ -136,7 +112,7 @@ namespace MusicVision.Controllers
             return list;
         }
 
-        public List<FullPlaylist> GetFullPlaylists(string profileID, List<SimplePlaylist> playlistList)
+        private List<FullPlaylist> GetFullPlaylists(List<SimplePlaylist> playlistList)
         {
 
             List<FullPlaylist> list = new List<FullPlaylist>();
@@ -147,12 +123,7 @@ namespace MusicVision.Controllers
             }            
 
             return list;
-        }
-
-        private void authButton_Click(object sender, EventArgs e)
-        {
-            Task.Run(() => RunAuthentication());
-        }
+        }        
 
         public async void RunAuthentication()
         {
@@ -180,12 +151,12 @@ namespace MusicVision.Controllers
         }
     }
 
-    public partial class LocalControl
+    public partial class SpotifyLocal
     {
         public readonly SpotifyLocalAPI _spotify;
         private Track _currentTrack;
 
-        public LocalControl()
+        public SpotifyLocal()
         {
             //InitializeComponent();
 
