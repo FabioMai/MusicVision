@@ -7,7 +7,10 @@
         <button class="btn btn-primary" v-on:click="toggleSelection()">Browse</button>
     </div>
     <div id="toggleArea" class="marginTop">
-        <div class="col-md-8 col-md-offset-2 marginBottom"><input class="form-control" placeholder="Search for songs, artists, etc." /></div>
+        <div class="col-md-8 col-md-offset-2 marginBottom"><input class="form-control col-md-4" id="searchInput" placeholder="Search for songs, artists, etc." /></div>
+        <div class="text-center">
+            <button class="btn btn-primary col-md-2" v-on:click="searchSong()">Search</button>
+        </div>
         <div class=" playlistsScrollable col-md-3 col-md-offset-1">
             <div class="list-group">
                 <a href="#" class="list-group-item active">
@@ -139,6 +142,37 @@
                         console.log('/Home/InitializePlayer call errored.');
                     }
                 });
+            },
+            searchSong: function () {
+                var self = this;                
+                var songTitle = $("#searchInput")[0].value;
+                if (songTitle != '') {
+                    $.ajax({
+                        type: "POST",
+                        url: "/Home/SongSearch",
+                        data: '{trackName:"' + songTitle + '"}',
+                        contentType: "application/json; charset=utf-8",
+                        dataType: "json",
+                        success: function (response) {                            
+                            if (response != 'Track not found.') {
+                                self.songPlaying = true;
+                                self.currentSongImage = response["Album"]["Images"][2]["Url"];
+                                self.currentSongTitle = response["Name"];
+                                self.currentSongArtist = response["Artists"][0]["Name"];
+                            }
+                            else {
+                                console.log(response);
+                            }
+                            console.log('/Home/SongSearch call succeeded.');
+                        },
+                        failure: function (response) {
+                            console.log('/Home/SongSearch call failed.');
+                        },
+                        error: function (response) {
+                            console.log('/Home/SongSearch call errored.');
+                        }
+                    });
+                }                
             },
             getCurrentTrack: function () {
 

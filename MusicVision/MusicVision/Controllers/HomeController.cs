@@ -76,6 +76,25 @@ namespace MusicVision.Controllers
                         
             return Json(message);
         }
+
+        [HttpPost]
+        public async Task<JsonResult> SongSearch(string trackName)
+        {            
+            SpotifyWeb spotifyWeb = new SpotifyWeb();
+            await Task.Run(() => spotifyWeb.RunAuthentication());
+            FullTrack result = spotifyWeb.SearchTrack(trackName);
+            if (result != null)
+            {                
+                SpotifyLocal spotifyLocal = new SpotifyLocal();
+                spotifyLocal.Connect();
+                await spotifyLocal._spotify.PlayURL(result.Uri);
+                return Json(result);
+            }
+            else
+            {                
+                return Json("Track not found.");
+            }            
+        }
     }
 
     public class SpotifyWeb
@@ -102,6 +121,19 @@ namespace MusicVision.Controllers
             _simplePlaylists = GetPlaylists(_profile.Id);
             _fullPlaylists = GetFullPlaylists(_simplePlaylists);
             _musicLoungeModel = CreateMusicLoungeModel(_fullPlaylists);                      
+        }
+
+        public FullTrack SearchTrack(string songName)
+        {
+            SearchItem search = _spotify.SearchItems(songName, SearchType.Track);
+            if (search.Tracks != null)
+            {
+                if (search.Tracks.Items != null)
+                {
+                    return search.Tracks.Items[0];
+                }
+            }
+            return null;
         }
 
         public string GetTrackURI()
