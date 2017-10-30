@@ -1,0 +1,39 @@
+<svg width="134" height="236" viewBox="0 0 134 236" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<title>music_vision_logo</title>
+<desc>Created using Figma</desc>
+<g id="Canvas" transform="matrix(2 0 0 2 -1752 -2320)">
+<g id="music_vision_logo">
+<g id="Polygon">
+<use xlink:href="#path0_fill" transform="matrix(1 0 0 -1 879 1273)"/>
+</g>
+<g id="Polygon 2">
+<use xlink:href="#path1_fill" transform="translate(908 1161)"/>
+</g>
+<g id="Polygon 2">
+<use xlink:href="#path2_fill" transform="translate(879 1161)"/>
+</g>
+<g id="V">
+<use xlink:href="#path3_fill" transform="translate(877 1179)" fill="#5B9EB1"/>
+</g>
+<g id="M">
+<use xlink:href="#path4_fill" transform="translate(874 1045)" fill="#5B9EB1"/>
+</g>
+<g id="Vector" filter="url(#filter0_f)">
+<use xlink:href="#path5_stroke" transform="translate(904 1213)" fill="#F17575"/>
+</g>
+</g>
+</g>
+<defs>
+<filter id="filter0_f" filterUnits="userSpaceOnUse" x="903" y="1210" width="14" height="6" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="0.5" result="effect1_foregroundBlur"/>
+</filter>
+<path id="path0_fill" d="M 30 0L 55.9808 72L 4.01924 72L 30 0Z"/>
+<path id="path1_fill" d="M 15.5 0L 28.9234 43.5L 2.07661 43.5L 15.5 0Z"/>
+<path id="path2_fill" d="M 16 0L 29.8564 43.5L 2.14359 43.5L 16 0Z"/>
+<path id="path3_fill" d="M 65.184 32.07L 48.888 93.374C 48.5 95.0553 47.6593 96.4133 46.366 97.448C 45.0727 98.4827 43.5207 99 41.71 99L 23.28 99C 21.4693 99 19.9173 98.4827 18.624 97.448C 17.3307 96.4133 16.49 95.0553 16.102 93.374L -0.194 32.07L 21.437 32.07L 30.07 75.623C 30.1993 76.205 30.6197 78.7593 31.331 83.286L 33.659 83.286C 33.9177 81.0227 34.338 78.4683 34.92 75.623L 43.553 32.07L 65.184 32.07Z"/>
+<path id="path4_fill" d="M 46.575 115.25L 60.9 115.25C 64.55 115.25 66.45 117.125 66.6 120.875L 68.4 167L 53.775 167L 52.2 127.4L 51.075 127.4L 45.975 153.8C 45.425 157.1 43.375 158.75 39.825 158.75L 31.425 158.75C 27.875 158.75 25.8 157.1 25.2 153.8L 20.025 127.4L 18.9 127.4L 17.625 167L 3 167L 4.8 120.875C 4.95 117.125 6.85 115.25 10.5 115.25L 24.525 115.25C 28.025 115.25 30.075 116.925 30.675 120.275L 34.425 140.825C 34.675 142.425 34.95 145 35.25 148.55L 35.925 148.55C 35.925 148.4 36.025 147.325 36.225 145.325C 36.475 143.325 36.675 141.825 36.825 140.825L 40.35 120.275C 40.95 116.925 43.025 115.25 46.575 115.25Z"/>
+<path id="path5_stroke" d="M 0 1.5L 12 1.5L 12 -1.5L 0 -1.5L 0 1.5Z"/>
+</defs>
+</svg>
