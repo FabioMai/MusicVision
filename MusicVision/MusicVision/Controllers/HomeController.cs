@@ -36,12 +36,21 @@ namespace MusicVision.Controllers
         }
 
         [HttpPost]
-        public async Task<JsonResult> InitializePlayer(string trackURI)
+        public async Task<JsonResult> InitializePlayer(string trackURI, string playlistContext)
         {
             string message = "tester12";
             SpotifyLocal spotifyLocal = new SpotifyLocal();
             spotifyLocal.Connect();
-            await spotifyLocal._spotify.PlayURL(trackURI);
+            await spotifyLocal._spotify.PlayURL(trackURI,playlistContext);
+            //string[] test = playlistName.Replace("spotify:track:","").Split(',');
+            //foreach (var a in test)
+            //{
+            //    await spotifyLocal._spotify.AddToQueue(a);
+            //}
+            
+            //List<string> playlistNameDict = Newtonsoft.Json.JsonConvert.DeserializeObject<List<string>>(playlistName);
+            
+            //
             return Json(message);
         }
 
@@ -62,7 +71,8 @@ namespace MusicVision.Controllers
                     await spotifyLocal._spotify.Pause();
                     message = "Pause command.";
                     break;
-                case "next":                    
+                case "next":
+                    spotifyLocal._spotify.Skip();
                     message = "Next command.";
                     break;
                 case "previous":
@@ -230,10 +240,10 @@ namespace MusicVision.Controllers
         public SpotifyLocal()
         {            
             _spotify = new SpotifyLocalAPI();
-            _spotify.OnPlayStateChange += _spotify_OnPlayStateChange;
-            _spotify.OnTrackChange += _spotify_OnTrackChange;
-            _spotify.OnTrackTimeChange += _spotify_OnTrackTimeChange;
-            _spotify.OnVolumeChange += _spotify_OnVolumeChange;
+            //_spotify.OnPlayStateChange += _spotify_OnPlayStateChange;
+            //_spotify.OnTrackChange += _spotify_OnTrackChange;
+            //_spotify.OnTrackTimeChange += _spotify_OnTrackTimeChange;
+            //_spotify.OnVolumeChange += _spotify_OnVolumeChange;
             //_spotify.SynchronizingObject = this;
             
             //artistLinkLabel.Click += (sender, args) => Process.Start(artistLinkLabel.Tag.ToString());

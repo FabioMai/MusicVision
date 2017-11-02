@@ -1,10 +1,10 @@
 ﻿@{
     Layout = "~/Views/Shared/_LayoutLounge.cshtml";
     string artists = "";
-    string trackLength;
+    string trackLength;    
 }
 <div id="app" class="container">
-    @model List<MusicVision.Models.MusicLoungeModel>
+    @model List<MusicVision.Models.MusicLoungeModel>        
     <div class="text-center marginTop">
         <button class="btn btn-primary" v-on:click="toggleSelection()">
             <span class="glyphicon glyphicon-chevron-up" v-if="browsePlaylists" aria-hidden="true"></span>
@@ -23,7 +23,7 @@
                 </a>
                 @foreach (var playlist in Model)
                 {
-                    <a href="#" class="list-group-item" v-on:click="playlistClick(JSON.parse('@Json.Encode(@playlist.TrackList[0])'),'@playlist.Playlist.Name')">@playlist.Playlist.Name</a>
+                    <a href="#" class="list-group-item" v-on:click="playlistClick(JSON.parse('@Json.Encode(@playlist.TrackList[0])'),'@playlist.Playlist.Uri','@playlist.Playlist.Name')">@playlist.Playlist.Name</a>
                 }
             </div>
         </div>
@@ -45,7 +45,7 @@
                         artists = artists.Substring(0, artists.Length-2);
                         trackLength = "" + track.DurationMs / 60000 + ":" + (track.DurationMs % 60000).ToString().Substring(0,2);
                         
-                        <a href="#" class="list-group-item" v-on:click="songClick(JSON.parse('@Json.Encode(@track)'))">@track.Name - @artists <span class="pull-right">@trackLength</span></a>
+                        <a href="#" class="list-group-item" v-on:click="songClick(JSON.parse('@Json.Encode(@track)'),'@playlist.Playlist.Uri')">@track.Name - @artists <span class="pull-right">@trackLength</span></a>
                     }
                 </div>
             </div>
@@ -104,7 +104,7 @@
                     }
                 });
             },
-            playlistClick: function (songData, playlistName) {
+            playlistClick: function (songData, playlistContext, playlistName) {
                 var self = this;
                 self.songPlaying = true;
                 self.currentSongImage = songData["Album"]["Images"][2]["Url"];
@@ -115,7 +115,7 @@
                 $.ajax({
                     type: "POST",
                     url: "/Home/InitializePlayer",
-                    data: '{trackURI:"' + songData["Uri"] + '"}',
+                    data: '{trackURI:"' + songData["Uri"] + '",playlistContext:"' + playlistContext + '"}',
                     contentType: "application/json; charset=utf-8",
                     dataType: "json",
                     success: function (response) {
@@ -129,17 +129,17 @@
                     }
                 });
             },
-            songClick: function (songData) {
+            songClick: function (songData, playlistContext) {
                 var self = this;
                 self.songPlaying = true;
                 self.currentSongImage = songData["Album"]["Images"][2]["Url"];
                 self.currentSongTitle = songData["Name"];
                 self.currentSongArtist = songData["Artists"][0]["Name"];
-
+                
                 $.ajax({
                     type: "POST",
                     url: "/Home/InitializePlayer",
-                    data: '{trackURI:"' + songData["Uri"] + '"}',
+                    data: '{trackURI:"' + songData["Uri"] + '",playlistContext:"' + playlistContext + '"}',
                     contentType: "application/json; charset=utf-8",
                     dataType: "json",
                     success: function (response) {
