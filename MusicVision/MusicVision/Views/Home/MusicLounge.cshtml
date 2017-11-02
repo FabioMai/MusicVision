@@ -1,5 +1,7 @@
 ﻿@{
     Layout = "~/Views/Shared/_LayoutLounge.cshtml";
+    string artists = "";
+    string trackLength;
 }
 <div id="app" class="container">
     @model List<MusicVision.Models.MusicLoungeModel>
@@ -35,13 +37,15 @@
                     </a>
                     @foreach (var track in playlist.TrackList)
                     {
-                        var artists = "";
-                        foreach (var artist in track.Artists)
+                        artists = "";
+                        foreach(var artist in track.Artists)
                         {
-                            artists = artists + artist + ", ";
+                            artists = artists + artist.Name + ", ";
                         }
-                        artists = artists.Substring(artists.Length - 2);
-                        <a href="#" class="list-group-item" v-on:click="songClick(JSON.parse('@Json.Encode(@track)'))">@track.Name</a>
+                        artists = artists.Substring(0, artists.Length-2);
+                        trackLength = "" + track.DurationMs / 60000 + ":" + (track.DurationMs % 60000).ToString().Substring(0,2);
+                        
+                        <a href="#" class="list-group-item" v-on:click="songClick(JSON.parse('@Json.Encode(@track)'))">@track.Name - @artists <span class="pull-right">@trackLength</span></a>
                     }
                 </div>
             </div>
