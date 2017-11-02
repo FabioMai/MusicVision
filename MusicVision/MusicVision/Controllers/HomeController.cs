@@ -29,7 +29,7 @@ namespace MusicVision.Controllers
         public async Task<ActionResult> MusicLounge()
         {
             SpotifyWeb spotifyWeb = new SpotifyWeb();
-            await Task.Run(() => spotifyWeb.RunAuthentication());                        
+            await Task.Run(() => spotifyWeb.RunAuthentication());                      
             List<MusicLoungeModel> model = spotifyWeb.MusicLoungeModel;
             
             return View(model);
@@ -195,10 +195,14 @@ namespace MusicVision.Controllers
 
         private List<FullPlaylist> GetFullPlaylists(List<SimplePlaylist> playlistList)
         {
-
+            //The 'i' counter is used to prevent too many playlist imports. To be removed later.
             List<FullPlaylist> list = new List<FullPlaylist>();
+            int i = 0;
             foreach(var playlist in playlistList)
             {
+                i++;
+                if (i > 5)
+                    break;
                 FullPlaylist fullPlaylist = _spotify.GetPlaylist(playlist.Owner.Id, playlist.Id);
                 list.Add(fullPlaylist);
             }            
