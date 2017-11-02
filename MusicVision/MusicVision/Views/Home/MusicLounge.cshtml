@@ -4,7 +4,10 @@
 <div id="app" class="container">
     @model List<MusicVision.Models.MusicLoungeModel>
     <div class="text-center marginTop">
-        <button class="btn btn-primary" v-on:click="toggleSelection()">Browse</button>
+        <button class="btn btn-primary" v-on:click="toggleSelection()">
+            <span class="glyphicon glyphicon-chevron-up" v-if="browsePlaylists" aria-hidden="true"></span>
+            <span class="glyphicon glyphicon-chevron-down" v-if="!browsePlaylists" aria-hidden="true"></span>
+        </button>
     </div>
     <div id="toggleArea" class="marginTop">
         <div class="col-md-8 col-md-offset-2 marginBottom"><input class="form-control col-md-4" id="searchInput" placeholder="Search for songs, artists, etc." /></div>
@@ -67,6 +70,7 @@
         el: '#app',
         data: {
             songPlaying: false,
+            browsePlaylists: true,
             currentSongImage: '',
             currentSongTitle: '',
             currentSongArtist: '',
@@ -74,7 +78,9 @@
         },
         methods: {
             toggleSelection: function () {
+                var self = this;
                 $("#toggleArea").slideToggle("slow");
+                self.browsePlaylists = !self.browsePlaylists;
             },
             playerClick: function (commandName) {
                 $.ajax({
