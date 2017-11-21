@@ -44,7 +44,7 @@
                             artists = artists + artist.Name + ", ";
                         }
                         artists = artists.Substring(0, artists.Length-2);
-                        trackLength = "" + track.DurationMs / 60000 + ":" + (track.DurationMs % 60000).ToString();
+                        trackLength = "" + track.DurationMs / 60000 + ":" + (track.DurationMs % 60000).ToString().PadLeft(5,'0').Substring(0,2);
                         
                         <a href="#" class="list-group-item" v-on:click="songClick(JSON.parse('@Json.Encode(@track)'),'@playlist.Playlist.Uri')">@track.Name - @artists <span class="pull-right">@trackLength</span></a>
                     }
