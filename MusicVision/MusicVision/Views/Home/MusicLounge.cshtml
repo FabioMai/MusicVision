@@ -1,11 +1,13 @@
 ﻿@{
     Layout = "~/Views/Shared/_LayoutLounge.cshtml";
     string artists = "";
-    string trackLength;    
+    string trackLength;
 }
 <div id="app" class="container">
-    <div id="player"></div>
-    @model List<MusicVision.Models.MusicLoungeModel>        
+    <div style="position: fixed; left: 0; z-index: -99; width: 100%; height: 100%">
+        <div id="player"></div>
+    </div>
+    @model List<MusicVision.Models.MusicLoungeModel>
     <div class="text-center marginTop">
         <button class="btn btn-primary" v-on:click="toggleSelection()">
             <span class="glyphicon glyphicon-chevron-up" v-if="browsePlaylists" aria-hidden="true"></span>
@@ -30,7 +32,7 @@
         </div>
 
         @foreach (var playlist in Model)
-        {
+            {
             <div class="tracksScrollable col-md-7" v-if="activePlaylist=='@playlist.Playlist.Name'">
                 <div class="list-group">
                     <a href="#" class="list-group-item active">
@@ -39,13 +41,13 @@
                     @foreach (var track in playlist.TrackList)
                     {
                         artists = "";
-                        foreach(var artist in track.Artists)
+                        foreach (var artist in track.Artists)
                         {
                             artists = artists + artist.Name + ", ";
                         }
-                        artists = artists.Substring(0, artists.Length-2);
-                        trackLength = "" + track.DurationMs / 60000 + ":" + (track.DurationMs % 60000).ToString().PadLeft(5,'0').Substring(0,2);
-                        
+                        artists = artists.Substring(0, artists.Length - 2);
+                        trackLength = "" + track.DurationMs / 60000 + ":" + (track.DurationMs % 60000).ToString().PadLeft(5, '0').Substring(0, 2);
+
                         <a href="#" class="list-group-item" v-on:click="songClick(JSON.parse('@Json.Encode(@track)'),'@playlist.Playlist.Uri')">@track.Name - @artists <span class="pull-right">@trackLength</span></a>
                     }
                 </div>
@@ -54,15 +56,15 @@
     </div>
 
     <footer class="container-fluid">
-        <div class="col-md-3" v-if="songPlaying">
-            <img :src="currentSongImage" height="64" width="64" />
+        <div class="col-md-3" v-if="songPlaying" style="border-radius: 10px;">
+            <img :src="currentSongImage" height="64" width="64" style="margin-left: 25px;"/>
             <div class="btn-group">
                 <button type="button" v-on:click="playerClick('previous')" class="btn btn-default" aria-label="Previous Track"><span class="glyphicon glyphicon-step-backward" aria-hidden="true"></span></button>
                 <button type="button" v-on:click="playerClick('play')" class="btn btn-default" aria-label="Play"><span class="glyphicon glyphicon-play" aria-hidden="true"></span></button>
                 <button type="button" v-on:click="playerClick('pause')" class="btn btn-default" aria-label="Pause"><span class="glyphicon glyphicon-pause" aria-hidden="true"></span></button>
                 <button type="button" v-on:click="playerClick('next')" class="btn btn-default" aria-label="Next Track"><span class="glyphicon glyphicon-step-forward" aria-hidden="true"></span></button>
             </div>
-            <p>{{currentSongTitle}} by {{currentSongArtist}}</p>
+            <p style="margin-left: 25px; color: white; background-color: black; border-radius: 10px">{{currentSongTitle}} by {{currentSongArtist}}</p>
         </div>
     </footer>
 </div>
@@ -136,7 +138,7 @@
                 self.currentSongImage = songData["Album"]["Images"][2]["Url"];
                 self.currentSongTitle = songData["Name"];
                 self.currentSongArtist = songData["Artists"][0]["Name"];
-                
+
                 $.ajax({
                     type: "POST",
                     url: "/Home/InitializePlayer",
@@ -155,7 +157,7 @@
                 });
             },
             searchSong: function () {
-                var self = this;                
+                var self = this;
                 var songTitle = $("#searchInput")[0].value;
                 if (songTitle != '') {
                     $.ajax({
@@ -164,7 +166,7 @@
                         data: '{trackName:"' + songTitle + '"}',
                         contentType: "application/json; charset=utf-8",
                         dataType: "json",
-                        success: function (response) {                            
+                        success: function (response) {
                             if (response != 'Track not found.') {
                                 self.songPlaying = true;
                                 self.currentSongImage = response["Album"]["Images"][2]["Url"];
@@ -183,7 +185,7 @@
                             console.log('/Home/SongSearch call errored.');
                         }
                     });
-                }                
+                }
             },
             getCurrentTrack: function () {
 
@@ -221,9 +223,15 @@
     var player;
     function onYouTubeIframeAPIReady() {
         player = new YT.Player('player', {
-            height: window.innerHeight/2,
-            width: window.innerWidth/2,
-            videoId: '',
+            height: window.innerHeight,
+            width: window.innerWidth,
+            videoId: 't6jlhqNxRYk',
+            playerVars: {
+                autoplay: 1,
+                controls: 0,
+                disablekb: 1,
+                showinfo: 0
+            },
             events: {
                 'onReady': onPlayerReady,
                 'onStateChange': onPlayerStateChange
