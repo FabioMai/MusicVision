@@ -73,6 +73,11 @@
 <script src="https://unpkg.com/vue"></script>
 
 <script>
+    $(document).ready(function () {
+        if (window.location.href.indexOf('#') > -1)
+            window.location.href = window.location.href.replace('#','?');
+    });
+
     var accesstoken = 'Bearer ' + window.location.hash.split('=')[1].split('&')[0];
     
     function googleApiClientReady() {

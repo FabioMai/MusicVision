@@ -13,7 +13,7 @@
         //TODO: Evaluate different authorization techniques, clean up URL
         var authLink = 'https://accounts.spotify.com/authorize?client_id='
             + '8f811d168e154b98ad5d55fffcf392f9' //my ClientID from the application I registered on https://developer.spotify.com/my-applications/#!/applications
-            + '&redirect_uri=http:%2F%2Flocalhost:63927%2Fcallback'
+            + '&redirect_uri=http:%2F%2Fmusicvision.ca-central-1.elasticbeanstalk.com%2Fcallback'
             + '&scope=user-read-currently-playing%20user-read-playback-state' //Scopes according to https://developer.spotify.com/web-api/using-scopes/
             + '&response_type=token&state=123';
         window.location.href = authLink;

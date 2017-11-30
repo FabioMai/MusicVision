@@ -26,12 +26,53 @@ namespace MusicVision.Controllers
             return View();
         }
 
-        public async Task<ActionResult> MusicLounge()
+        public ActionResult MusicLounge()
         {
-            SpotifyWeb spotifyWeb = new SpotifyWeb();
-            await Task.Run(() => spotifyWeb.RunAuthentication());                      
-            List<MusicLoungeModel> model = spotifyWeb.MusicLoungeModel;
-            
+            List<MusicLoungeModel> model;
+            try
+            {
+                string tokenString = this.Request.QueryString.ToString();
+                
+                if (tokenString != null && tokenString != string.Empty)
+                {
+                    tokenString = tokenString.Replace("&amp;", "&");
+                    tokenString = tokenString.Replace("%3d", "=");
+                    List<string> stringList = new List<string>{ "access_token=","token_type=","expires_in=","state="};
+                    Dictionary<string, string> dictionary = new Dictionary<string, string>();
+                    for (int index = 0; index < stringList.Count; ++index)
+                    {
+                        int index1 = tokenString.IndexOf(stringList[index]);
+                        int num = index + 1 == stringList.Count ? tokenString.Length : tokenString.IndexOf(stringList[index + 1]) - 1;
+                        string str2 = tokenString.Substring(index1, num - index1);
+                        string str3 = str2.Substring(str2.IndexOf("=") + 1, str2.Length - str2.IndexOf("=") - 1);
+                        dictionary.Add(stringList[index], str3);
+                    }
+
+                    Token token = new Token();
+                    token.AccessToken = dictionary[stringList[0]];
+                    token.TokenType = dictionary[stringList[1]];
+                    token.ExpiresIn = int.Parse(dictionary[stringList[2]]);
+
+                    SpotifyWeb spotifyWeb = new SpotifyWeb();
+                    spotifyWeb._spotify = new SpotifyWebAPI
+                    {
+                        UseAuth = true,
+                        AccessToken = token.AccessToken,
+                        TokenType=token.TokenType
+                    };
+                    
+                    spotifyWeb.InitialSetup();
+                    model = spotifyWeb.MusicLoungeModel;
+                }
+                else
+                {                   
+                    model = new List<MusicLoungeModel>();                                      
+                }
+            }
+            catch (Exception ex)
+            {
+                model = new List<MusicLoungeModel>();                
+            }
             return View(model);
         }
 
@@ -109,7 +150,7 @@ namespace MusicVision.Controllers
 
     public class SpotifyWeb
     {
-        private SpotifyWebAPI _spotify;
+        public SpotifyWebAPI _spotify;
 
         private PrivateProfile _profile;        
         private List<SimplePlaylist> _simplePlaylists;
