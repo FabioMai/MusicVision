@@ -74,10 +74,11 @@
 
 <script>
     var spotifyApi;
+    var accesstoken;
     $(document).ready(function () {
         if (window.location.href.indexOf('#') > -1)
             window.location.href = window.location.href.replace('#', '?');
-        var accessToken = window.location.href.substring
+        accesstoken = window.location.href.substring(window.location.href.indexOf('token=') + 6, window.location.href.indexOf('&token_type'));
         spotifyApi = new SpotifyWebApi();
         spotifyApi.setAccessToken(window.location.href.substring(window.location.href.indexOf('token=') + 6, window.location.href.indexOf('&token_type')));
         spotifyApi.getUserPlaylists('jmperezperez')
@@ -88,7 +89,7 @@
             });
     });
 
-    var accesstoken = 'Bearer ' + window.location.hash.split('=')[1].split('&')[0];
+    //var accesstoken = 'Bearer ' + window.location.hash.split('=')[1].split('&')[0];
     
     function googleApiClientReady() {
         var apiKey = 'AIzaSyDOnBYq0e7B9PdH9JOaC0EdKFew2ZsDjTw';
