@@ -23,6 +23,9 @@ namespace MusicVision
                       "~/Scripts/bootstrap.js",
                       "~/Scripts/respond.js"));
 
+            bundles.Add(new ScriptBundle("~/bundles/spotifyWebApi").Include(
+                "~/Scripts/spotify-web-api.js"));
+
             bundles.Add(new StyleBundle("~/Content/css").Include(
                       "~/Content/bootstrap.css",
                       "~/Content/site.css"));

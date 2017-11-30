@@ -99,32 +99,38 @@ namespace MusicVision.Controllers
         public async Task<JsonResult> PlayerClick(string commandName)
         {
             string message = "No message.";
-            SpotifyLocal spotifyLocal = new SpotifyLocal();
-            spotifyLocal.Connect();            
-            switch (commandName)
+            try
             {
-                case "play":                    
-                    //spotifyLocal.UpdateTrack();
-                    await spotifyLocal._spotify.Play();                    
-                    message = "Play command.";
-                    break;
-                case "pause":
-                    await spotifyLocal._spotify.Pause();
-                    message = "Pause command.";
-                    break;
-                case "next":
-                    spotifyLocal._spotify.Skip();
-                    message = "Next command.";
-                    break;
-                case "previous":
-                    spotifyLocal._spotify.Previous();
-                    message = "Previous command.";
-                    break;
-                default:
-                    message = "Improper command.";
-                    break;
+                SpotifyLocal spotifyLocal = new SpotifyLocal();
+                spotifyLocal.Connect();
+                switch (commandName)
+                {
+                    case "play":
+                        //spotifyLocal.UpdateTrack();
+                        await spotifyLocal._spotify.Play();
+                        message = "Play command.";
+                        break;
+                    case "pause":
+                        await spotifyLocal._spotify.Pause();
+                        message = "Pause command.";
+                        break;
+                    case "next":
+                        spotifyLocal._spotify.Skip();
+                        message = "Next command.";
+                        break;
+                    case "previous":
+                        spotifyLocal._spotify.Previous();
+                        message = "Previous command.";
+                        break;
+                    default:
+                        message = "Improper command.";
+                        break;
+                }
             }
-                        
+            catch(Exception ex)
+            {
+                message = ex.Message;
+            }
             return Json(message);
         }
 
@@ -132,19 +138,49 @@ namespace MusicVision.Controllers
         public async Task<JsonResult> SongSearch(string trackName)
         {            
             SpotifyWeb spotifyWeb = new SpotifyWeb();
-            await Task.Run(() => spotifyWeb.RunAuthentication());
-            FullTrack result = spotifyWeb.SearchTrack(trackName);
-            if (result != null)
-            {                
-                SpotifyLocal spotifyLocal = new SpotifyLocal();
-                spotifyLocal.Connect();
-                await spotifyLocal._spotify.PlayURL(result.Uri);
-                return Json(result);
+
+            string tokenString = this.Request.QueryString.ToString();
+
+            if (tokenString != null && tokenString != string.Empty)
+            {
+                tokenString = tokenString.Replace("&amp;", "&");
+                tokenString = tokenString.Replace("%3d", "=");
+                List<string> stringList = new List<string> { "access_token=", "token_type=", "expires_in=", "state=" };
+                Dictionary<string, string> dictionary = new Dictionary<string, string>();
+                for (int index = 0; index < stringList.Count; ++index)
+                {
+                    int index1 = tokenString.IndexOf(stringList[index]);
+                    int num = index + 1 == stringList.Count ? tokenString.Length : tokenString.IndexOf(stringList[index + 1]) - 1;
+                    string str2 = tokenString.Substring(index1, num - index1);
+                    string str3 = str2.Substring(str2.IndexOf("=") + 1, str2.Length - str2.IndexOf("=") - 1);
+                    dictionary.Add(stringList[index], str3);
+                }
+
+                Token token = new Token();
+                token.AccessToken = dictionary[stringList[0]];
+                token.TokenType = dictionary[stringList[1]];
+                token.ExpiresIn = int.Parse(dictionary[stringList[2]]);
+
+                spotifyWeb._spotify = new SpotifyWebAPI
+                {
+                    UseAuth = true,
+                    AccessToken = token.AccessToken,
+                    TokenType = token.TokenType
+                };
+
+                spotifyWeb.InitialSetup();
+                FullTrack result = spotifyWeb.SearchTrack(trackName);
+                if (result != null)
+                {                   
+                    return Json(result);
+                }
+                else
+                {
+                    return Json("Track not found.");
+                }
             }
             else
-            {                
-                return Json("Track not found.");
-            }            
+                return Json("Track not found.");                                   
         }
     }
 
@@ -283,8 +319,10 @@ namespace MusicVision.Controllers
         private Track _currentTrack;
 
         public SpotifyLocal()
-        {            
-            _spotify = new SpotifyLocalAPI();
+        {
+            SpotifyLocalAPIConfig localConfig = new SpotifyLocalAPIConfig();
+            localConfig.HostUrl = GetIPAddress();
+            _spotify = new SpotifyLocalAPI(localConfig);
             //_spotify.OnPlayStateChange += _spotify_OnPlayStateChange;
             //_spotify.OnTrackChange += _spotify_OnTrackChange;
             //_spotify.OnTrackTimeChange += _spotify_OnTrackTimeChange;
@@ -294,6 +332,23 @@ namespace MusicVision.Controllers
             //artistLinkLabel.Click += (sender, args) => Process.Start(artistLinkLabel.Tag.ToString());
             //albumLinkLabel.Click += (sender, args) => Process.Start(albumLinkLabel.Tag.ToString());
             //titleLinkLabel.Click += (sender, args) => Process.Start(titleLinkLabel.Tag.ToString());
+        }
+
+        protected string GetIPAddress()
+        {
+            System.Web.HttpContext context = System.Web.HttpContext.Current;
+            string ipAddress = context.Request.ServerVariables["HTTP_X_FORWARDED_FOR"];
+
+            if (!string.IsNullOrEmpty(ipAddress))
+            {
+                string[] addresses = ipAddress.Split(',');
+                if (addresses.Length != 0)
+                {
+                    return addresses[0];
+                }
+            }
+
+            return context.Request.ServerVariables["REMOTE_ADDR"];
         }
 
         public void Connect()

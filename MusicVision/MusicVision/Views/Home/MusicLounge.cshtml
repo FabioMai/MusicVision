@@ -73,9 +73,19 @@
 <script src="https://unpkg.com/vue"></script>
 
 <script>
+    var spotifyApi;
     $(document).ready(function () {
         if (window.location.href.indexOf('#') > -1)
-            window.location.href = window.location.href.replace('#','?');
+            window.location.href = window.location.href.replace('#', '?');
+        var accessToken = window.location.href.substring
+        spotifyApi = new SpotifyWebApi();
+        spotifyApi.setAccessToken(window.location.href.substring(window.location.href.indexOf('token=') + 6, window.location.href.indexOf('&token_type')));
+        spotifyApi.getUserPlaylists('jmperezperez')
+            .then(function (data) {
+                console.log('User playlists', data);
+            }, function (err) {
+                console.error(err);
+            });
     });
 
     function googleApiClientReady() {
@@ -166,27 +176,75 @@
             playerClick: function (commandName) {
                 
                 if (commandName == "play") {
-                    player.playVideo()
+                    player.playVideo();
+                    spotifyApi.play({}, function (err, data) {
+                        if (err) console.error(err);
+                        else {
+                            spotifyApi.getMyCurrentPlayingTrack({}, function (err, data) {
+                                if (err) console.error(err);
+                                else {
+                                    console.log(data);
+                                    self.currentSongImage = data["item"]["album"]["images"][2]["url"];
+                                    self.currentSongTitle = data["item"]["name"];
+                                    self.currentSongArtist = data["item"]["artists"][0]["name"];
+                                }
+                            });
+                        }
+                    });
                 }
                 else if (commandName == "pause") {
-                    player.pauseVideo()
+                    player.pauseVideo();
+                    spotifyApi.pause({}, function (err, data) {
+                        if (err) console.error(err);
+                        else {
+                            spotifyApi.getMyCurrentPlayingTrack({}, function (err, data) {
+                                if (err) console.error(err);
+                                else {
+                                    console.log(data);
+                                    self.currentSongImage = data["item"]["album"]["images"][2]["url"];
+                                    self.currentSongTitle = data["item"]["name"];
+                                    self.currentSongArtist = data["item"]["artists"][0]["name"];
+                                }
+                            });
+                        }
+                    });
                 }
-                $.ajax({
-                    type: "POST",
-                    url: "/Home/PlayerClick",
-                    data: '{commandName:"' + commandName + '"}',
-                    contentType: "application/json; charset=utf-8",
-                    dataType: "json",
-                    success: function (response) {
-                        console.log('/Home/PlayerClick call succeeded.');
-                    },
-                    failure: function (response) {
-                        console.log('/Home/PlayerClick call failed.');
-                    },
-                    error: function (response) {
-                        console.log('/Home/PlayerClick call errored.');
-                    }
-                });
+                else if (commandName == "next") {                    
+                    spotifyApi.skipToNext({}, function (err, data) {
+                        if (err) console.error(err);
+                        else {
+                            spotifyApi.getMyCurrentPlayingTrack({}, function (err,data) {
+                                if (err) console.error(err);
+                                else {
+                                    console.log(data);
+                                    self.currentSongImage = data["item"]["album"]["images"][2]["url"];
+                                    self.currentSongTitle = data["item"]["name"];
+                                    self.currentSongArtist = data["item"]["artists"][0]["name"];
+                                    getMatch(self.currentSongTitle, self.currentSongArtist);
+                                    player.playVideo();
+                                }
+                            });
+                        }
+                    });
+                }
+                else if (commandName == "previous") {                    
+                    spotifyApi.skipToPrevious({}, function (err, data) {
+                        if (err) console.error(err);
+                        else {
+                            spotifyApi.getMyCurrentPlayingTrack({}, function (err, data) {
+                                if (err) console.error(err);
+                                else {
+                                    console.log(data);
+                                    self.currentSongImage = data["item"]["album"]["images"][2]["url"];
+                                    self.currentSongTitle = data["item"]["name"];
+                                    self.currentSongArtist = data["item"]["artists"][0]["name"];
+                                    getMatch(self.currentSongTitle, self.currentSongArtist);
+                                    player.playVideo();
+                                }
+                            });
+                        }
+                    });
+                }
             },
             playlistClick: function (songData, playlistContext, playlistName) {
                 var self = this;
@@ -196,23 +254,12 @@
                 self.currentSongArtist = songData["Artists"][0]["Name"];
                 self.activePlaylist = playlistName;
                 getMatch(self.currentSongTitle, self.currentSongArtist);
-             
-                $.ajax({
-                    type: "POST",
-                    url: "/Home/InitializePlayer",
-                    data: '{trackURI:"' + songData["Uri"] + '",playlistContext:"' + playlistContext + '"}',
-                    contentType: "application/json; charset=utf-8",
-                    dataType: "json",
-                    success: function (response) {
-                        console.log('/Home/InitializePlayer call succeeded.');
-                    },
-                    failure: function (response) {
-                        console.log('/Home/InitializePlayer call failed.');
-                    },
-                    error: function (response) {
-                        console.log('/Home/InitializePlayer call errored.');
-                    }
-                });
+
+                spotifyApi.play({ context_uri: playlistContext}, function (err, data) {
+                    if (err) console.error(err);
+                    else { console.log("success!"); console.log(data); }
+                    console.log(playlistContext);
+                });                
             },
             songClick: function (songData, playlistContext) {
                 var self = this;
@@ -222,22 +269,11 @@
                 self.currentSongArtist = songData["Artists"][0]["Name"];
                 getMatch(self.currentSongTitle, self.currentSongArtist);
 
-                $.ajax({
-                    type: "POST",
-                    url: "/Home/InitializePlayer",
-                    data: '{trackURI:"' + songData["Uri"] + '",playlistContext:"' + playlistContext + '"}',
-                    contentType: "application/json; charset=utf-8",
-                    dataType: "json",
-                    success: function (response) {
-                        console.log('/Home/InitializePlayer call succeeded.');
-                    },
-                    failure: function (response) {
-                        console.log('/Home/InitializePlayer call failed.');
-                    },
-                    error: function (response) {
-                        console.log('/Home/InitializePlayer call errored.');
-                    }
-                });
+                spotifyApi.play({ context_uri: playlistContext }, function (err, data) {
+                    if (err) console.error(err);
+                    else { console.log("success!"); console.log(data); }
+                    console.log(playlistContext);
+                });                
             },
             searchSong: function () {
                 var self = this;
@@ -255,6 +291,15 @@
                                 self.currentSongImage = response["Album"]["Images"][2]["Url"];
                                 self.currentSongTitle = response["Name"];
                                 self.currentSongArtist = response["Artists"][0]["Name"];
+                                getMatch(self.currentSongTitle, self.currentSongArtist);
+                                player.playVideo();
+                                console.log(response);
+
+                                spotifyApi.play({ context_uri: response["Uri"] }, function (err, data) {
+                                    if (err) console.error(err);
+                                    else { console.log("success!"); console.log(data); }
+                                    console.log(playlistContext);
+                                });
                             }
                             else {
                                 console.log(response);
