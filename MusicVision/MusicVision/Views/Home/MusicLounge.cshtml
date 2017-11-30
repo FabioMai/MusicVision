@@ -8,10 +8,9 @@
         <div id="player"></div>
     </div>
     @model List<MusicVision.Models.MusicLoungeModel>
-    <div class="text-center marginTop">
+    <div class="marginTop">
         <button class="btn btn-primary" v-on:click="toggleSelection()">
-            <span class="glyphicon glyphicon-chevron-up" v-if="browsePlaylists" aria-hidden="true"></span>
-            <span class="glyphicon glyphicon-chevron-down" v-if="!browsePlaylists" aria-hidden="true"></span>
+            <span class="glyphicon glyphicon-th-list" aria-hidden="true"></span>
         </button>
     </div>
     <div id="toggleArea" class="marginTop">
@@ -59,10 +58,11 @@
         <div class="col-md-3" v-if="songPlaying" style="border-radius: 10px;">
             <img :src="currentSongImage" height="64" width="64" style="margin-left: 25px;"/>
             <div class="btn-group">
-                <button type="button" v-on:click="playerClick('previous')" class="btn btn-default" aria-label="Previous Track"><span class="glyphicon glyphicon-step-backward" aria-hidden="true"></span></button>
+                <button type="button" v-on:click="previousTrack()" class="btn btn-default" aria-label="Previous Track"><span class="glyphicon glyphicon-step-backward" aria-hidden="true"></span></button>
                 <button type="button" v-on:click="playerClick('play')" class="btn btn-default" aria-label="Play"><span class="glyphicon glyphicon-play" aria-hidden="true"></span></button>
                 <button type="button" v-on:click="playerClick('pause')" class="btn btn-default" aria-label="Pause"><span class="glyphicon glyphicon-pause" aria-hidden="true"></span></button>
-                <button type="button" v-on:click="playerClick('next')" class="btn btn-default" aria-label="Next Track"><span class="glyphicon glyphicon-step-forward" aria-hidden="true"></span></button>
+                <button type="button" v-on:click="nextTrack()" class="btn btn-default" aria-label="Next Track"><span class="glyphicon glyphicon-step-forward" aria-hidden="true"></span></button>
+                <button type="button" v-on:click="getCurrentTrack()" class="btn btn-default" aria-label="Refresh"><span class="glyphicon glyphicon-refresh" aria-hidden="true"></span></button>
             </div>
             <p style="margin-left: 25px; color: white; background-color: black; border-radius: 10px">{{currentSongTitle}} by {{currentSongArtist}}</p>
         </div>
@@ -73,6 +73,8 @@
 <script src="https://unpkg.com/vue"></script>
 
 <script>
+    var accesstoken = 'Bearer ' + window.location.hash.split('=')[1].split('&')[0];
+    
     function googleApiClientReady() {
         var apiKey = 'AIzaSyDOnBYq0e7B9PdH9JOaC0EdKFew2ZsDjTw';
 
@@ -155,7 +157,7 @@
         methods: {
             toggleSelection: function () {
                 var self = this;
-                $("#toggleArea").slideToggle("slow");
+                $("#toggleArea").animate({ width: 'toggle' });
                 self.browsePlaylists = !self.browsePlaylists;
             },
             playerClick: function (commandName) {
@@ -181,7 +183,7 @@
                     error: function (response) {
                         console.log('/Home/PlayerClick call errored.');
                     }
-                });
+                }); 
             },
             playlistClick: function (songData, playlistContext, playlistName) {
                 var self = this;
@@ -266,13 +268,37 @@
                 }
             },
             getCurrentTrack: function () {
-
+                var self = this;
+                $.ajax({
+                    type: "GET",
+                    url: "https://api.spotify.com/v1/me/player/currently-playing",
+                    headers: {
+                        'Authorization': accesstoken
+                    },
+                    contentType: "application/json; charset=utf-8",
+                    dataType: "json",
+                    success: function (response) {  
+                        self.songPlaying = true;
+                        self.currentSongImage = response.item.album.images[2].url;
+                        self.currentSongTitle = response.item.name;
+                        self.currentSongArtist = response.item.artists[0].name;
+                        
+                        console.log('GetCurrentTrack call succeeded.');
+                    },
+                    failure: function (response) {
+                        console.log('GetCurrentTrack call failed.');
+                    },
+                    error: function (response) {
+                        console.log('GetCurrentTrack call errored.');
+                    }
+                });
+                
             },
             previousTrack: function () {
-                playerClick('previous');
+                this.playerClick('previous');
             },
             nextTrack: function () {
-                playerClick('next');
+                this.playerClick('next');            
             },
             play: function () {
                 playerClick('play');
