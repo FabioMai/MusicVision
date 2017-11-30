@@ -37,8 +37,10 @@
                     <a href="#" class="list-group-item active">
                         @playlist.Playlist.Name
                     </a>
+                    @{int i = 0;}
                     @foreach (var track in playlist.TrackList)
                     {
+                        i++;
                         artists = "";
                         foreach (var artist in track.Artists)
                         {
@@ -47,7 +49,7 @@
                         artists = artists.Substring(0, artists.Length - 2);
                         trackLength = "" + track.DurationMs / 60000 + ":" + (track.DurationMs % 60000).ToString().PadLeft(5, '0').Substring(0, 2);
 
-                        <a href="#" class="list-group-item" v-on:click="songClick(JSON.parse('@Json.Encode(@track)'),'@playlist.Playlist.Uri')">@track.Name - @artists <span class="pull-right">@trackLength</span></a>
+                        <a href="#" class="list-group-item" v-on:click="songClick(JSON.parse('@Json.Encode(@track)'),'@playlist.Playlist.Uri',(@i))">@track.Name - @artists <span class="pull-right">@trackLength</span></a>
                     }
                 </div>
             </div>
@@ -111,9 +113,10 @@
             resultItems = response.result.items[0]["id"]["videoId"];
             player.loadVideoById({
                 'videoId': resultItems,
-                'startSeconds': 5,
+                'startSeconds': 0,
                 'suggestedQuality': 'large'
             });
+            player.pauseVideo()
         });
     }
 
@@ -130,7 +133,8 @@
         player = new YT.Player('player', {
             height: window.innerHeight,
             width: window.innerWidth,
-            videoId: 't6jlhqNxRYk',
+            videoId: 'Ujvy-DEA-UM',
+            startSeconds: 10,
             playerVars: {
                 autoplay: 1,
                 controls: 0,
@@ -155,9 +159,58 @@
     //    the player should play for six seconds and then stop.
     var done = false;
     function onPlayerStateChange(event) {
+        if (event == 3) {
+            pause()
+        }
     }
-    function stopVideo() {
-        player.stopVideo();
+
+    function play() {
+        spotifyApi.play({}, function (err, data) {
+            if (err) console.error(err);
+            else {
+                player.playVideo()
+                spotifyApi.getMyCurrentPlayingTrack({}, function (err, data) {
+                    if (err) console.error(err);
+                });
+            }
+        });
+    }
+
+    function pause() {
+        spotifyApi.pause({}, function (err, data) {
+            if (err) console.error(err);
+            else {
+                player.pauseVideo()
+                spotifyApi.getMyCurrentPlayingTrack({}, function (err, data) {
+                    if (err) console.error(err);
+                });
+            }
+        });
+    }
+
+    //To be used later
+    function next() {
+        spotifyApi.skipToNext({}, function (err, data) {
+            if (err) console.error(err);
+            else {
+                spotifyApi.getMyCurrentPlayingTrack({}, function (err, data) {
+                    if (err) console.error(err);
+                });
+            }
+        });
+    }
+
+    //To be used later
+    function previous() {
+        spotifyApi.skipToPrevious({}, function (err, data) {
+            if (err) console.error(err);
+            else {
+                player.play
+                spotifyApi.getMyCurrentPlayingTrack({}, function (err, data) {
+                    if (err) console.error(err);
+                });
+            }
+        });
     }
 
     var app = new Vue({
@@ -179,13 +232,13 @@
             playerClick: function (commandName) {
                 
                 if (commandName == "play") {
-                    player.playVideo();
                     spotifyApi.play({}, function (err, data) {
                         if (err) console.error(err);
                         else {
                             spotifyApi.getMyCurrentPlayingTrack({}, function (err, data) {
                                 if (err) console.error(err);
                                 else {
+                                    player.playVideo()
                                     console.log(data);
                                     self.currentSongImage = data["item"]["album"]["images"][2]["url"];
                                     self.currentSongTitle = data["item"]["name"];
@@ -196,13 +249,13 @@
                     });
                 }
                 else if (commandName == "pause") {
-                    player.pauseVideo();
                     spotifyApi.pause({}, function (err, data) {
                         if (err) console.error(err);
                         else {
                             spotifyApi.getMyCurrentPlayingTrack({}, function (err, data) {
                                 if (err) console.error(err);
                                 else {
+                                    player.pauseVideo()
                                     console.log(data);
                                     self.currentSongImage = data["item"]["album"]["images"][2]["url"];
                                     self.currentSongTitle = data["item"]["name"];
@@ -216,7 +269,7 @@
                     spotifyApi.skipToNext({}, function (err, data) {
                         if (err) console.error(err);
                         else {
-                            spotifyApi.getMyCurrentPlayingTrack({}, function (err,data) {
+                            spotifyApi.getMyCurrentPlayingTrack({}, function (err, data) {
                                 if (err) console.error(err);
                                 else {
                                     console.log(data);
@@ -224,7 +277,6 @@
                                     self.currentSongTitle = data["item"]["name"];
                                     self.currentSongArtist = data["item"]["artists"][0]["name"];
                                     getMatch(self.currentSongTitle, self.currentSongArtist);
-                                    player.playVideo();
                                 }
                             });
                         }
@@ -242,7 +294,6 @@
                                     self.currentSongTitle = data["item"]["name"];
                                     self.currentSongArtist = data["item"]["artists"][0]["name"];
                                     getMatch(self.currentSongTitle, self.currentSongArtist);
-                                    player.playVideo();
                                 }
                             });
                         }
@@ -256,26 +307,39 @@
                 self.currentSongTitle = songData["Name"];
                 self.currentSongArtist = songData["Artists"][0]["Name"];
                 self.activePlaylist = playlistName;
+
                 getMatch(self.currentSongTitle, self.currentSongArtist);
 
                 spotifyApi.play({ context_uri: playlistContext}, function (err, data) {
                     if (err) console.error(err);
-                    else { console.log("success!"); console.log(data); }
-                    console.log(playlistContext);
-                });                
+                    else {
+                        spotifyApi.skipToNext({}, function (err, data) {
+                            if (err) console.error(err);;
+                        });
+                    }
+                });
+
             },
-            songClick: function (songData, playlistContext) {
+            songClick: function (songData, playlistContext, trackNumber) {
                 var self = this;
                 self.songPlaying = true;
+                console.log(songData);
+                console.log(trackNumber)
                 self.currentSongImage = songData["Album"]["Images"][2]["Url"];
                 self.currentSongTitle = songData["Name"];
                 self.currentSongArtist = songData["Artists"][0]["Name"];
                 getMatch(self.currentSongTitle, self.currentSongArtist);
 
-                spotifyApi.play({ context_uri: playlistContext }, function (err, data) {
+                spotifyApi.play({ context_uri: playlistContext}, function (err, data) {
                     if (err) console.error(err);
                     else { console.log("success!"); console.log(data); }
-                    console.log(playlistContext);
+                    pause()
+                    for (i = 0; i < trackNumber; i++) {
+                        spotifyApi.skipToNext({}, function (err, data) {
+                            if (err) console.error(err);
+                        });
+                    }
+                    
                 });                
             },
             searchSong: function () {
@@ -353,11 +417,9 @@
             },
             play: function () {
                 playerClick('play');
-                player.playVideo();
             },
             pause: function () {
                 playerClick('pause');
-                player.pauseVideo();
             }
         },
         mounted() {
