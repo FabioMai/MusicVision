@@ -116,7 +116,6 @@
                 'startSeconds': 0,
                 'suggestedQuality': 'large'
             });
-            player.pauseVideo()
         });
     }
 
@@ -345,42 +344,31 @@
             searchSong: function () {
                 var self = this;
                 var songTitle = $("#searchInput")[0].value;
-                if (songTitle != '') {
-                    $.ajax({
-                        type: "POST",
-                        url: "/Home/SongSearch",
-                        data: '{trackName:"' + songTitle + '"}',
-                        contentType: "application/json; charset=utf-8",
-                        dataType: "json",
-                        success: function (response) {
-                            if (response != 'Track not found.') {
-                                self.songPlaying = true;
-                                self.currentSongImage = response["Album"]["Images"][2]["Url"];
-                                self.currentSongTitle = response["Name"];
-                                self.currentSongArtist = response["Artists"][0]["Name"];
-                                getMatch(self.currentSongTitle, self.currentSongArtist);
-                                player.playVideo();
-                                console.log(response);
-
-                                spotifyApi.play({ context_uri: response["Uri"] }, function (err, data) {
+                //songTitle = songTitle.split(' ').join('+');
+                console.log(songTitle);
+                spotifyApi.search( songTitle, ['album', 'artist', 'track'], {limit: 10}, function (err, data) {
+                    if (err) console.error(err);
+                    else {
+                        console.log(data);
+                        getMatch(data['tracks']['items'][0]['artists'][0]['name'], data['tracks']['items'][0]['name']);
+                        spotifyApi.play({ uris: [data['tracks']['items'][0]['uri']] }, function (err, data) {
+                            if (err) console.error(err);
+                            else {
+                                spotifyApi.getMyCurrentPlayingTrack({}, function (err, data) {
                                     if (err) console.error(err);
-                                    else { console.log("success!"); console.log(data); }
-                                    console.log(playlistContext);
+                                    else {
+                                        player.playVideo()
+                                        console.log(data);
+                                        self.currentSongImage = data["item"]["album"]["images"][2]["url"];
+                                        self.currentSongTitle = data["item"]["name"];
+                                        self.currentSongArtist = data["item"]["artists"][0]["name"];
+                                    }
                                 });
                             }
-                            else {
-                                console.log(response);
-                            }
-                            console.log('/Home/SongSearch call succeeded.');
-                        },
-                        failure: function (response) {
-                            console.log('/Home/SongSearch call failed.');
-                        },
-                        error: function (response) {
-                            console.log('/Home/SongSearch call errored.');
-                        }
-                    });
-                }
+                        });
+                    }
+                });
+           
             },
             getCurrentTrack: function () {
                 var self = this;
